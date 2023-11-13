@@ -1,0 +1,137 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Bibl {
+  id                 String  @id
+  Topic              String?
+  Instruction        String?
+  AcademicYear       String?
+  TaskSetting        String?
+  CreationDate       String?
+  ProficSlv          String?
+  ProgramType        String?
+  ProgramSubtype     String?
+  Teacher            String?
+  InputType          String?
+  Grade              String?
+  Author             String?
+  Sex                String?
+  YearOfBirth        String?
+  EmploymentStatus   String?
+  CompletedEducation String?
+  CurrentSchool      String?
+  StudyCycle         String?
+  StudyYear          String?
+  Country            String?
+  FirstLang          String?
+  OtherLang          String?
+  ExpSlv             String?
+  LocSlvLearning     String?
+  DurSlvLearning     String?
+  SloveneTextbooks   String?
+  LifeSlovenia       String?
+
+  Paragraph Paragraph[]
+  Sentence  Sentence[]
+
+  @@index([TaskSetting, ProficSlv, ProgramType, InputType, FirstLang])
+}
+
+model Paragraph {
+  id   String     @id
+  type TextSource
+
+  biblId String
+  Bibl   Bibl   @relation(fields: [biblId], references: [id])
+
+  origParagraphId String?    @unique
+  OrigParagraph   Paragraph? @relation("OppositeParagraph", fields: [origParagraphId], references: [id])
+  CorrParagraph   Paragraph? @relation("OppositeParagraph")
+
+  Sentences Sentence[]
+
+  OrigErrors Err[] @relation("OrigErrors")
+  CorrErrors Err[] @relation("CorrErrors")
+}
+
+model Sentence {
+  id   String     @id
+  type TextSource
+
+  biblId String
+  Bibl   Bibl   @relation(fields: [biblId], references: [id])
+
+  paragraphId String
+  Paragraph   Paragraph @relation(fields: [paragraphId], references: [id])
+
+  Words Word[]
+}
+
+model Word {
+  id    String     @id
+  type  TextSource
+  ana   String
+  lemma String?
+  text  String
+
+  sentenceId String
+  Sentence   Sentence @relation(fields: [sentenceId], references: [id])
+
+  OrigErrors Err[] @relation("OrigErrors")
+  CorrErrors Err[] @relation("CorrErrors")
+
+  @@index([lemma, text, ana])
+}
+
+model Err {
+  id   Int    @id @default(autoincrement())
+  type String
+
+  origWordId String?
+  OrigWord   Word?   @relation("OrigErrors", fields: [origWordId], references: [id])
+
+  corrWordId String?
+  CorrWord   Word?   @relation("CorrErrors", fields: [corrWordId], references: [id])
+
+  origParagraphId String?
+  OrigParagraph   Paragraph? @relation("OrigErrors", fields: [origParagraphId], references: [id])
+
+  corrParagraphId String?
+  CorrParagraph   Paragraph? @relation("CorrErrors", fields: [corrParagraphId], references: [id])
+
+  @@index([type])
+}
+
+model BiblMeta {
+  id Int @id @default(autoincrement())
+
+  colName           String
+  origCounts        String
+  origWithErrCounts String
+  corrCounts        String
+  corrWithErrCounts String
+}
+
+model CountMeta {
+  id Int @id @default(autoincrement())
+
+  name              String
+  origCounts        String
+  origWithErrCounts String?
+  corrCounts        String
+  corrWithErrCounts String?
+}
+
+enum TextSource {
+  ORIG
+  CORR
+}

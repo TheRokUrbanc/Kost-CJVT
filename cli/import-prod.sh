@@ -1,0 +1,1 @@
+docker run -e DATABASE_URL=postgres://postgres:postgres@postgres:5432/learner-corpus --network=learner-corpus_kost-network -v "./import:/app/import" -it ghcr.io/budi1200/learner-corpus:prod pnpm import-data
